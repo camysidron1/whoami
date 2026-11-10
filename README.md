@@ -1,7 +1,17 @@
 # whoami
 
-Cam Ysidron's personal site: a terminal over digital rain. Visitors click or type commands
-(`whoami`, `work`, `experience`, `stack`, `contact`, `help`) and the output prints in place.
+Cam Ysidron's personal site: a terminal over digital rain. Visitors click or type commands and
+the output prints in place.
+
+| Command                                               | What it shows                         |
+| ----------------------------------------------------- | ------------------------------------- |
+| `whoami`, `now`, `work`, `experience`, `stack`, `contact` | The views, also in the nav        |
+| `open <project>`                                      | A project in the work view            |
+| `theme green`, `theme amber`, `theme white`           | Recolors the site and remembers it    |
+| `help`, `clear`, `history`                            | Shell basics                          |
+
+Tab completes commands and project names, and the up and down arrows browse history. A few other
+commands (`sudo`, `neo`, `pwd` and friends) answer with a line.
 
 Built with SvelteKit and prerendered to static files.
 
@@ -23,13 +33,19 @@ bun run dev
 ## Where things live
 
 - `src/lib/content.ts`: projects and roles. Edit copy here.
-- `src/lib/commands.ts`: maps what is typed at the prompt to a view. Aliases live here.
-- `src/lib/components/Terminal.svelte`: the shell. Owns the current view, the prompt, and the
-  sequence that runs a command.
-- `src/lib/components/views/`: one component per command.
-- `src/lib/components/Rain.svelte`: the background canvas.
+- `src/lib/commands.ts`: maps what is typed at the prompt to a view, and handles tab completion.
+- `src/lib/replies.ts`: commands that print a line or trigger an effect without opening a view.
+- `src/lib/theme.ts`: the theme names and switching. The palettes are in `src/app.css`.
+- `src/lib/components/Terminal.svelte`: the shell. Owns the current view, the prompt, history, and
+  the sequence that runs a command.
+- `src/lib/components/views/`: one component per view.
+- `src/lib/components/Rain.svelte`: the background canvas. It reacts to the pointer and to signals.
+- `src/lib/rainSignals.ts`: how the terminal talks to the rain and portrait (`pulse`, `surge`,
+  `recolor`) without touching their canvases.
+- `src/lib/components/Portrait.svelte` and `src/lib/portrait.ts`: the glyph portrait and its
+  brightness grid.
 - `src/lib/actions/`: `decode` unscrambles headings, `reveal` staggers printed lines.
-- `src/app.css`: color and type tokens, plus the shared `print` animation.
+- `src/app.css`: color and type tokens, the theme palettes, and the shared `print` animation.
 
 ### Adding a project
 
@@ -41,6 +57,26 @@ it unique, lowercase, and free of spaces.
 1. Add the name to `NAV` (shown as a button) or `VIEWS` (typed only) in `commands.ts`.
 2. Create its component in `components/views/`.
 3. Render it from the `{#if}` chain in `Terminal.svelte`.
+
+### Adding a reply
+
+Add a `case` to `reply()` in `replies.ts`. Return the lines to print, plus an optional `effect` or
+`theme`.
+
+### Adding a theme
+
+Add the name to `THEMES` in `theme.ts` and a matching `:root[data-theme='<name>']` block in
+`app.css`. Set `--glow` to the phosphor color as space-separated channels.
+
+### Changing the portrait
+
+```sh
+python3 scripts/portrait.py path/to/photo.jpg
+```
+
+This needs ffmpeg. It rewrites `src/lib/portrait.ts` and prints a preview. A photo with a plain,
+dark background works best. Adjust the crop and fade constants at the top of the script to fit a
+new photo.
 
 ## Deploy
 

@@ -4,13 +4,37 @@
 	--bg: #020a05;
 	--panel: rgba(3, 14, 8, 0.9);
 	--phosphor: #3dfc7e;
-	--phosphor-glow: rgba(61, 252, 126, 0.45);
+	/* The phosphor color as channels, for translucent glows. */
+	--glow: 61 252 126;
+	--phosphor-glow: rgb(var(--glow) / 0.45);
 	--dim: #23a05a;
 	--faint: #0f4a2a;
 	--text: #b4efca;
 	--head: #eafff2;
 	--mono: 'Martian Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
 	--ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+:root[data-theme='amber'] {
+	--bg: #0a0602;
+	--panel: rgba(14, 9, 3, 0.9);
+	--phosphor: #ffb000;
+	--glow: 255 176 0;
+	--dim: #a8741a;
+	--faint: #4a3208;
+	--text: #f3dcae;
+	--head: #fff6e0;
+}
+
+:root[data-theme='white'] {
+	--bg: #060708;
+	--panel: rgba(10, 11, 13, 0.9);
+	--phosphor: #e8eef2;
+	--glow: 232 238 242;
+	--dim: #8a949c;
+	--faint: #2c3238;
+	--text: #cfd6db;
+	--head: #ffffff;
 }
 
 html,

@@ -2,13 +2,17 @@
 	import { onMount } from 'svelte';
 
 	import { reveal } from '$lib/actions/reveal';
-	import { NAV, resolve, type ViewName } from '$lib/commands';
+	import { complete, NAV, resolve, type ViewName } from '$lib/commands';
 	import { projects } from '$lib/content';
 	import { pause } from '$lib/motion';
+	import { signalRain } from '$lib/rainSignals';
+	import { reply } from '$lib/replies';
+	import { applyTheme, restoreTheme } from '$lib/theme';
 
 	import Contact from './views/Contact.svelte';
 	import Experience from './views/Experience.svelte';
 	import Help from './views/Help.svelte';
+	import Now from './views/Now.svelte';
 	import Stack from './views/Stack.svelte';
 	import Whoami from './views/Whoami.svelte';
 	import Work from './views/Work.svelte';
@@ -26,9 +30,11 @@
 		second: '2-digit'
 	});
 
-	/** The view on screen. null means the last command was not found. */
+	/** The view on screen. null means the last command printed lines instead of opening a view. */
 	let view: ViewName | null = $state(HOME);
-	/** The command echoed above the output. */
+	/** Lines printed by a command that has no view. null means the command was not found. */
+	let printed: string[] | null = $state(null);
+	/** The command echoed above the output. Empty after `clear`. */
 	let echo: string = $state(HOME);
 	/** Bumped per command so the output remounts and its print animation replays. */
 	let outputKey = $state(0);
@@ -47,6 +53,11 @@
 	/** Identifies the latest command, so an earlier one still animating can bail out. */
 	let latestRun = 0;
 
+	/** Every command run this visit, oldest first. */
+	const commandHistory: string[] = [];
+	/** Position in `commandHistory` while browsing it with the arrow keys. null when not browsing. */
+	let historyCursor: number | null = null;
+
 	async function run(raw: string, { typeIt = false } = {}) {
 		const id = ++latestRun;
 		const superseded = () => id !== latestRun;
@@ -63,6 +74,7 @@
 			if (superseded()) return;
 		}
 		typed = '';
+		historyCursor = null;
 
 		leaving = true;
 		await pause(LEAVE_MS);
@@ -71,10 +83,17 @@
 		output.scrollTop = 0;
 
 		const resolved = resolve(command);
+		const answer = resolved ? null : reply(command, commandHistory);
+		commandHistory.push(command);
+
 		if (resolved?.view === 'work') projectIndex = resolved.projectIndex ?? 0;
 		view = resolved?.view ?? null;
-		echo = command;
+		printed = answer?.lines ?? null;
+		echo = answer?.effect === 'clear' ? '' : command;
 		outputKey++;
+
+		if (answer?.theme) applyTheme(answer.theme);
+		if (answer?.effect === 'surge') signalRain({ type: 'surge' });
 
 		const hash = view && view !== HOME ? `#${view}` : '';
 		if (location.hash !== hash) {
@@ -87,13 +106,42 @@
 		if (typed.trim()) run(typed);
 	}
 
-	/** With an empty prompt, the arrow keys move through the project list. */
-	function stepThroughProjects(event: KeyboardEvent) {
-		if (view !== 'work' || typed) return;
+	/** Each keystroke sends a ring of light through the rain from the caret. */
+	function ripple() {
+		const box = input.getBoundingClientRect();
+		signalRain({ type: 'pulse', x: box.left + caretX, y: box.top + box.height / 2 });
+	}
+
+	function browseHistory(step: number) {
+		if (!commandHistory.length) return;
+		const next = (historyCursor ?? commandHistory.length) + step;
+		if (next >= commandHistory.length) {
+			historyCursor = null;
+			typed = '';
+		} else {
+			historyCursor = Math.max(0, next);
+			typed = commandHistory[historyCursor];
+		}
+	}
+
+	function handleKey(event: KeyboardEvent) {
+		if (event.key === 'Tab') {
+			event.preventDefault();
+			typed = complete(typed) ?? typed;
+			return;
+		}
+
 		const step = event.key === 'ArrowDown' ? 1 : event.key === 'ArrowUp' ? -1 : 0;
 		if (!step) return;
 		event.preventDefault();
-		projectIndex = (projectIndex + step + projects.length) % projects.length;
+
+		// With an empty prompt in the work view, the arrows move through the project list.
+		// Everywhere else they browse command history, as in a shell.
+		if (view === 'work' && !typed && historyCursor === null) {
+			projectIndex = (projectIndex + step + projects.length) % projects.length;
+		} else {
+			browseHistory(step);
+		}
 	}
 
 	function runFromHash() {
@@ -108,6 +156,8 @@
 	});
 
 	onMount(() => {
+		restoreTheme();
+
 		const tick = () => (clock = sanFrancisco.format(new Date()));
 		tick();
 		const timer = setInterval(tick, 1000);
@@ -155,9 +205,13 @@
 	<section class="output" class:leaving bind:this={output} aria-live="polite">
 		{#key outputKey}
 			<div use:reveal>
-				<p class="echo ln">~$ <b>{echo}</b></p>
+				{#if echo}
+					<p class="echo ln">~$ <b>{echo}</b></p>
+				{/if}
 				{#if view === 'whoami'}
 					<Whoami />
+				{:else if view === 'now'}
+					<Now />
 				{:else if view === 'work'}
 					<Work bind:index={projectIndex} />
 				{:else if view === 'experience'}
@@ -168,6 +222,10 @@
 					<Contact />
 				{:else if view === 'help'}
 					<Help />
+				{:else if printed}
+					{#each printed as line, i (i)}
+						<p class="printed ln">{line}</p>
+					{/each}
 				{:else}
 					<p class="ln">command not found: {echo.split(/\s+/)[0]}</p>
 				{/if}
@@ -187,7 +245,8 @@
 				aria-label="Type a command"
 				bind:this={input}
 				bind:value={typed}
-				onkeydown={stepThroughProjects}
+				onkeydown={handleKey}
+				oninput={ripple}
 			/>
 			<span class="caret" style:transform="translateX({caretX}px)"></span>
 			<span class="ruler" bind:this={ruler}>{typed}</span>
@@ -207,8 +266,8 @@
 		border: 1px solid var(--faint);
 		background: var(--panel);
 		box-shadow:
-			0 0 90px rgba(61, 252, 126, 0.09),
-			inset 0 0 60px rgba(61, 252, 126, 0.03);
+			0 0 90px rgb(var(--glow) / 0.09),
+			inset 0 0 60px rgb(var(--glow) / 0.03);
 		animation: boot 0.9s var(--ease) both;
 	}
 
@@ -322,6 +381,11 @@
 	.echo {
 		margin-bottom: 1.25rem;
 		color: var(--dim);
+	}
+
+	.printed {
+		margin: 0;
+		white-space: pre-wrap;
 	}
 
 	.echo b {

@@ -94,7 +94,7 @@
 		position: absolute;
 		inset: 0 0 auto;
 		pointer-events: none;
-		background: linear-gradient(90deg, rgba(61, 252, 126, 0.16), rgba(61, 252, 126, 0.03));
+		background: linear-gradient(90deg, rgb(var(--glow) / 0.16), rgb(var(--glow) / 0.03));
 		box-shadow: inset 2px 0 0 var(--phosphor);
 		transition:
 			transform 0.34s var(--ease),

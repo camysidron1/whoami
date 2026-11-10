@@ -6,6 +6,8 @@
 <dl class="kv">
 	<dt class="ln">whoami</dt>
 	<dd class="ln">Who I am</dd>
+	<dt class="ln">now</dt>
+	<dd class="ln">What I'm doing lately</dd>
 	<dt class="ln">work</dt>
 	<dd class="ln">Things I've built</dd>
 	<dt class="ln">experience</dt>
@@ -14,4 +16,6 @@
 	<dd class="ln">What I build with</dd>
 	<dt class="ln">contact</dt>
 	<dd class="ln">How to reach me</dd>
+	<dt class="ln">theme</dt>
+	<dd class="ln">green, amber or white</dd>
 </dl>
