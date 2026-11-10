@@ -44,9 +44,7 @@ it unique, lowercase, and free of spaces.
 
 ## Deploy
 
-- **Vercel** serves the site at the domain root. `vercel.json` points it at the static `build/`
-  output.
-- **GitHub Pages** also publishes on every push to `main`, under `/whoami`. The workflow sets
-  `BASE_PATH=/whoami` for that build (`.github/workflows/deploy.yml`).
+Vercel builds every push. `main` goes to production at ysidron.dev, and other branches get a
+preview URL. `vercel.json` points Vercel at the static `build/` output.
 
 Each view has a URL hash, such as `#work`, so links to a view work on any static host.

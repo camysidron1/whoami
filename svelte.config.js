@@ -17,11 +17,7 @@ const config = {
 			fallback: '404.html',
 			precompress: false,
 			strict: true
-		}),
-		paths: {
-			// GitHub Pages serves the site under /whoami and sets BASE_PATH; Vercel serves it at the root.
-			base: process.env.BASE_PATH ?? ''
-		}
+		})
 	}
 };
 
