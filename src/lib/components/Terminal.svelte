@@ -12,7 +12,6 @@
 	import Contact from './views/Contact.svelte';
 	import Experience from './views/Experience.svelte';
 	import Help from './views/Help.svelte';
-	import Now from './views/Now.svelte';
 	import Stack from './views/Stack.svelte';
 	import Whoami from './views/Whoami.svelte';
 	import Work from './views/Work.svelte';
@@ -210,8 +209,6 @@
 				{/if}
 				{#if view === 'whoami'}
 					<Whoami />
-				{:else if view === 'now'}
-					<Now />
 				{:else if view === 'work'}
 					<Work bind:index={projectIndex} />
 				{:else if view === 'experience'}

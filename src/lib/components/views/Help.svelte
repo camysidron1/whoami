@@ -6,8 +6,6 @@
 <dl class="kv">
 	<dt class="ln">whoami</dt>
 	<dd class="ln">Who I am</dd>
-	<dt class="ln">now</dt>
-	<dd class="ln">What I'm doing lately</dd>
 	<dt class="ln">work</dt>
 	<dd class="ln">Things I've built</dd>
 	<dt class="ln">experience</dt>

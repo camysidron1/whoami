@@ -1,7 +1,7 @@
 import { projects } from './content';
 import { THEMES } from './theme';
 
-export const NAV = ['whoami', 'now', 'work', 'experience', 'stack', 'contact'] as const;
+export const NAV = ['whoami', 'work', 'experience', 'stack', 'contact'] as const;
 export const VIEWS = [...NAV, 'help'] as const;
 export type ViewName = (typeof VIEWS)[number];
 
