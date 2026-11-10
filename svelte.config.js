@@ -19,7 +19,8 @@ const config = {
 			strict: true
 		}),
 		paths: {
-			base: process.env.NODE_ENV === 'production' ? '/whoami' : ''
+			// GitHub Pages serves the site under /whoami and sets BASE_PATH; Vercel serves it at the root.
+			base: process.env.BASE_PATH ?? ''
 		}
 	}
 };

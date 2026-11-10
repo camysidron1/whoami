@@ -1,38 +1,52 @@
-# sv
+# whoami
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+Cam Ysidron's personal site: a terminal over digital rain. Visitors click or type commands
+(`whoami`, `work`, `experience`, `stack`, `contact`, `help`) and the output prints in place.
 
-## Creating a project
+Built with SvelteKit and prerendered to static files.
 
-If you're seeing this, you've probably already done this step. Congrats!
-
-```sh
-# create a new project in the current directory
-npx sv create
-
-# create a new project in my-app
-npx sv create my-app
-```
-
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+## Develop
 
 ```sh
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+bun install
+bun run dev
 ```
 
-## Building
+| Command          | What it does                      |
+| ---------------- | --------------------------------- |
+| `bun run test`   | Unit tests (Vitest)               |
+| `bun run check`  | Type check                        |
+| `bun run lint`   | ESLint                            |
+| `bun run format` | Prettier                          |
+| `bun run build`  | Production build into `build/`    |
 
-To create a production version of your app:
+## Where things live
 
-```sh
-npm run build
-```
+- `src/lib/content.ts`: projects and roles. Edit copy here.
+- `src/lib/commands.ts`: maps what is typed at the prompt to a view. Aliases live here.
+- `src/lib/components/Terminal.svelte`: the shell. Owns the current view, the prompt, and the
+  sequence that runs a command.
+- `src/lib/components/views/`: one component per command.
+- `src/lib/components/Rain.svelte`: the background canvas.
+- `src/lib/actions/`: `decode` unscrambles headings, `reveal` staggers printed lines.
+- `src/app.css`: color and type tokens, plus the shared `print` animation.
 
-You can preview the production build with `npm run preview`.
+### Adding a project
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+Add an entry to `projects` in `content.ts`. Its `id` is what visitors type after `open`, so keep
+it unique, lowercase, and free of spaces.
+
+### Adding a command
+
+1. Add the name to `NAV` (shown as a button) or `VIEWS` (typed only) in `commands.ts`.
+2. Create its component in `components/views/`.
+3. Render it from the `{#if}` chain in `Terminal.svelte`.
+
+## Deploy
+
+- **Vercel** serves the site at the domain root. `vercel.json` points it at the static `build/`
+  output.
+- **GitHub Pages** also publishes on every push to `main`, under `/whoami`. The workflow sets
+  `BASE_PATH=/whoami` for that build (`.github/workflows/deploy.yml`).
+
+Each view has a URL hash, such as `#work`, so links to a view work on any static host.
